@@ -70,42 +70,53 @@ export default function ProductsPage() {
   }
 
   const performSearch = async (query: string) => {
-    if (!query.trim()) {
-      fetchAllProducts()
-      return
-    }
-
-    setSearchLoading(true)
-    setSearchMode("search")
-    try {
-      const vectorResponse = await fetch("/api/products/vector-search", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
-      })
-
-      if (vectorResponse.ok) {
-        const vectorData = await vectorResponse.json()
-        if (vectorData.length > 0) {
-          setProducts(vectorData)
-          setFilteredProducts(vectorData)
-          return
-        }
-      }
-
-      const response = await fetch(`/api/products/search?q=${encodeURIComponent(query)}`)
-      if (response.ok) {
-        const data = await response.json()
-        setProducts(data)
-        setFilteredProducts(data)
-      }
-    } catch (error) {
-      console.error("Error searching products:", error)
-    } finally {
-      setSearchLoading(false)
-      setLoading(false)
-    }
+  if (!query.trim()) {
+    fetchAllProducts();
+    return;
   }
+
+  setSearchLoading(true);
+  setSearchMode("search");
+  try {
+    const token = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("token="))
+      ?.split("=")[1];
+    const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
+
+    const vectorResponse = await fetch("/api/products/vector-search", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeader,
+      },
+      body: JSON.stringify({ query }),
+    });
+
+    if (vectorResponse.ok) {
+      const vectorData = await vectorResponse.json();
+      if (vectorData.length > 0) {
+        setProducts(vectorData);
+        setFilteredProducts(vectorData);
+        return;
+      }
+    }
+
+    const response = await fetch(`/api/products/search?q=${encodeURIComponent(query)}`, {
+      headers: authHeader,
+    });
+    if (response.ok) {
+      const data = await response.json();
+      setProducts(data);
+      setFilteredProducts(data);
+    }
+  } catch (error) {
+    console.error("Error searching products:", error);
+  } finally {
+    setSearchLoading(false);
+    setLoading(false);
+  }
+};
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -166,40 +177,50 @@ export default function ProductsPage() {
   }
 
   const sendAudioToServer = async (audioBlob: Blob) => {
-  setProcessingVoice(true)
+  setProcessingVoice(true);
   try {
-    const formData = new FormData()
-    formData.append("audio", audioBlob, "recording.webm")
+    const token = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("token="))
+      ?.split("=")[1];
+    if (!token) {
+      alert("Please log in to use voice search.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("audio", audioBlob, "recording.webm");
 
     const response = await fetch("/api/products/voice-search", {
       method: "POST",
       body: formData,
-      credentials: "include", // 🔥 critical for auth cookies
-    })
+      headers: {
+        Authorization: `Bearer ${token}`, // Add token to header
+      },
+    });
 
     if (!response.ok) {
-      throw new Error("Voice search API failed")
+      throw new Error("Voice search API failed");
     }
 
-    const data = await response.json()
+    const data = await response.json();
     if (data.keyword) {
-      setSearchTerm(data.keyword)
-      const url = new URL(window.location.href)
-      url.searchParams.set("search", data.keyword)
-      window.history.pushState({}, "", url.toString())
-      await performSearch(data.keyword)
+      setSearchTerm(data.keyword);
+      const url = new URL(window.location.href);
+      url.searchParams.set("search", data.keyword);
+      window.history.pushState({}, "", url.toString());
+      await performSearch(data.keyword);
     } else {
-      console.error("No keyword returned from voice search")
-      alert("Could not process voice input. Please try again.")
+      console.error("No keyword returned from voice search");
+      alert("Could not process voice input. Please try again.");
     }
   } catch (err) {
-    console.error("Voice search failed:", err)
-    alert("Voice search failed. Please try again.")
+    console.error("Voice search failed:", err);
+    alert("Voice search failed. Please try again.");
   } finally {
-    setProcessingVoice(false)
+    setProcessingVoice(false);
   }
-}
-
+};
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
