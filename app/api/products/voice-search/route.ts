@@ -12,6 +12,7 @@ const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB in bytes
 
 export async function POST(req: NextRequest) {
   try {
+    console.log("Received headers:", req.headers.get("Authorization"));
     const formData = await req.formData();
     const audio = formData.get("audio") as File;
 
