@@ -7,7 +7,7 @@ const sql = neon(process.env.DATABASE_URL!);
 export async function GET(request: NextRequest) {
   try {
     console.log("All cookies:", request.cookies.getAll());
-    const token = request.cookies.get("token")?.value;
+    const token = request.cookies.get("_vercel_jwt")?.value; // Check for _vercel_jwt instead of token
     console.log("Received token:", token);
 
     if (!token) {
@@ -23,9 +23,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    const userId = decoded.userId;
+    const userId = decoded.sub || decoded.userId; // Use sub as fallback
     if (!userId) {
-      console.error("Token missing userId");
+      console.error("Token missing userId or sub");
       return NextResponse.json({ error: "Invalid token structure" }, { status: 401 });
     }
 
