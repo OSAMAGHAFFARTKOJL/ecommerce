@@ -28,16 +28,16 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(await audio.arrayBuffer());
 
     // Use system temporary directory
-    const fileName = `voice-${uuidv4()}.webm`; // Corrected template literal
+    const fileName = `voice-${uuidv4()}.webm`;
     const filePath = path.join(os.tmpdir(), fileName);
-    console.log(`Attempting to save to: ${filePath}`); // Corrected debug log
+    console.log(`Attempting to save to: ${filePath}`); // Debug log
 
     // Ensure directory exists (though os.tmpdir() should already be valid)
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
 
     // Save to /tmp and use stream
     fs.writeFileSync(filePath, buffer);
-    console.log(`✅ Audio file saved to /tmp: ${filePath}`); // Corrected debug log
+    console.log(`✅ Audio file saved to /tmp: ${filePath}`);
 
     // Call Groq Whisper for transcription
     const transcription = await groq.audio.transcriptions.create({
