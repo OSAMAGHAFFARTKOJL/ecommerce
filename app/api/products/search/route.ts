@@ -114,7 +114,6 @@ async function performVectorSearch(query: string) {
         AND p.embedding IS NOT NULL
         AND (p.embedding <=> ${JSON.stringify(queryEmbedding)}) < 0.8
       GROUP BY p.id, u.name, p.embedding
-      ORDER BY search_score DESC
       LIMIT 30
     `
 
