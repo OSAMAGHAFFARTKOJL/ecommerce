@@ -3,7 +3,7 @@ import Groq from "groq-sdk";
 import fs from "fs";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
-import os from "os"; // Import os module for tmpdir
+import os from "os";
 
 const groq = new Groq();
 
@@ -12,7 +12,6 @@ const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB in bytes
 
 export async function POST(req: NextRequest) {
   try {
-    console.log("Received headers:", req.headers.get("Authorization"));
     const formData = await req.formData();
     const audio = formData.get("audio") as File;
 
@@ -31,12 +30,12 @@ export async function POST(req: NextRequest) {
     // Use system temporary directory
     const fileName = `voice-${uuidv4()}.webm`;
     const filePath = path.join(os.tmpdir(), fileName);
-    console.log(`Attempting to save to: ${filePath}`); // Debug log
+    console.log(`Attempting to save to: ${filePath}`);
 
-    // Ensure directory exists (though os.tmpdir() should already be valid)
+    // Ensure directory exists
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
 
-    // Save to /tmp and use stream
+    // Save to /tmp
     fs.writeFileSync(filePath, buffer);
     console.log(`✅ Audio file saved to /tmp: ${filePath}`);
 
