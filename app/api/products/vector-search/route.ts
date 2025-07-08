@@ -69,10 +69,11 @@ export async function POST(request: NextRequest) {
       WHERE p.status = 'active' AND p.embedding IS NOT NULL
       GROUP BY p.id, u.name, p.embedding
       ORDER BY 
-        -- Combine vector similarity with text score
-        (similarity_distance * 0.7 + (100 - text_score) / 100 * 0.3) ASC
-      LIMIT 50
-    `
+        -- Combine vector similarity and text score
+        ((1 - (p.embedding <=> ${JSON.stringify(queryEmbedding)})) * 0.7 + 
+         (calculate_search_score(p.name, p.category, p.tags, ${query}) / 10) * 0.3) DESC
+      LIMIT 10
+    `;
 
     console.log(`📊 Found ${products.length} products`)
 
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest) {
         id: product.id,
         name: product.name,
         price: Number.parseFloat(product.price),
-        image: product.image_url,
+        image_url: product.image_url,
         category: product.category,
         rating: Number.parseFloat(product.avg_rating),
         vendor: product.vendor_name,
