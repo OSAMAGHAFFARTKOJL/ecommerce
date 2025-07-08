@@ -166,38 +166,40 @@ export default function ProductsPage() {
   }
 
   const sendAudioToServer = async (audioBlob: Blob) => {
-    setProcessingVoice(true)
-    try {
-      const formData = new FormData()
-      formData.append("audio", audioBlob, "recording.webm")
+  setProcessingVoice(true)
+  try {
+    const formData = new FormData()
+    formData.append("audio", audioBlob, "recording.webm")
 
-      const response = await fetch("/api/products/voice-search", {
-        method: "POST",
-        body: formData,
-      })
+    const response = await fetch("/api/products/voice-search", {
+      method: "POST",
+      body: formData,
+      credentials: "include", // 🔥 critical for auth cookies
+    })
 
-      if (!response.ok) {
-        throw new Error("Voice search API failed")
-      }
-
-      const data = await response.json()
-      if (data.keyword) {
-        setSearchTerm(data.keyword)
-        const url = new URL(window.location.href)
-        url.searchParams.set("search", data.keyword)
-        window.history.pushState({}, "", url.toString())
-        await performSearch(data.keyword)
-      } else {
-        console.error("No keyword returned from voice search")
-        alert("Could not process voice input. Please try again.")
-      }
-    } catch (err) {
-      console.error("Voice search failed:", err)
-      alert("Voice search failed. Please try again.")
-    } finally {
-      setProcessingVoice(false)
+    if (!response.ok) {
+      throw new Error("Voice search API failed")
     }
+
+    const data = await response.json()
+    if (data.keyword) {
+      setSearchTerm(data.keyword)
+      const url = new URL(window.location.href)
+      url.searchParams.set("search", data.keyword)
+      window.history.pushState({}, "", url.toString())
+      await performSearch(data.keyword)
+    } else {
+      console.error("No keyword returned from voice search")
+      alert("Could not process voice input. Please try again.")
+    }
+  } catch (err) {
+    console.error("Voice search failed:", err)
+    alert("Voice search failed. Please try again.")
+  } finally {
+    setProcessingVoice(false)
   }
+}
+
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
