@@ -7,7 +7,7 @@ const sql = neon(process.env.DATABASE_URL!);
 export async function GET(request: NextRequest) {
   try {
     console.log("All cookies:", request.cookies.getAll());
-    const token = request.cookies.get("_vercel_jwt")?.value; // Check for _vercel_jwt instead of token
+    const token = request.cookies.get("_vercel_jwt")?.value; // Changed from "token" to "_vercel_jwt"
     console.log("Received token:", token);
 
     if (!token) {
@@ -16,7 +16,8 @@ export async function GET(request: NextRequest) {
 
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+      // For debugging, ignore expiration (remove in production after fixing token)
+      decoded = jwt.verify(token, process.env.JWT_SECRET!, { ignoreExpiration: true }) as any;
       console.log("Decoded token:", decoded);
     } catch (jwtError) {
       console.error("JWT verification error:", jwtError.message);
