@@ -7,7 +7,7 @@ const sql = neon(process.env.DATABASE_URL!);
 export async function GET(request: NextRequest) {
   try {
     console.log("All cookies:", request.cookies.getAll());
-    const token = request.cookies.get("_vercel_jwt")?.value; // Changed from "token" to "_vercel_jwt"
+    const token = request.cookies.get("token")?.value; // Use "token" cookie for custom JWT
     console.log("Received token:", token);
 
     if (!token) {
@@ -16,15 +16,14 @@ export async function GET(request: NextRequest) {
 
     let decoded;
     try {
-      // For debugging, ignore expiration (remove in production after fixing token)
-      decoded = jwt.verify(token, process.env.JWT_SECRET!, { ignoreExpiration: true }) as any;
+      decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
       console.log("Decoded token:", decoded);
     } catch (jwtError) {
       console.error("JWT verification error:", jwtError.message);
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    const userId = decoded.sub || decoded.userId; // Use sub as fallback
+    const userId = decoded.sub || decoded.userId; // Use sub or userId
     if (!userId) {
       console.error("Token missing userId or sub");
       return NextResponse.json({ error: "Invalid token structure" }, { status: 401 });
