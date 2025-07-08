@@ -6,6 +6,7 @@ const sql = neon(process.env.DATABASE_URL!);
 
 export async function GET(request: NextRequest) {
   try {
+    console.log("All cookies:", request.cookies.getAll());
     const token = request.cookies.get("token")?.value;
     console.log("Received token:", token);
 
