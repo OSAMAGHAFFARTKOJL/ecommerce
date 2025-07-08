@@ -80,7 +80,7 @@ export default function ProductsPage() {
     try {
       const token = document.cookie
         .split("; ")
-        .find((row) => row.startsWith("_vercel_jwt="))
+        .find((row) => row.startsWith("token="))
         ?.split("=")[1];
       const authHeader = token ? { Authorization: `Bearer ${token}` } : {};
 
@@ -181,7 +181,7 @@ export default function ProductsPage() {
     try {
       const token = document.cookie
         .split("; ")
-        .find((row) => row.startsWith("_vercel_jwt="))
+        .find((row) => row.startsWith("token="))
         ?.split("=")[1];
       if (!token) {
         alert("Please log in to use voice search.")
@@ -195,7 +195,7 @@ export default function ProductsPage() {
         method: "POST",
         body: formData,
         headers: {
-          Authorization: `Bearer ${token}`, // Add token to header
+          Authorization: `Bearer ${token}`, // Use custom token
         },
       })
 
